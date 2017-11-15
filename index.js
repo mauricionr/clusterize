@@ -1,8 +1,9 @@
 const cluster = require('cluster');
-const numCPUs = require('os').cpus().length;
+const cpus = require('os').cpus();
 
 
-const clusterize = (fns = [], args = []) => {
+const clusterize = (fns = [], args = [], length = 0) => {
+  let numCPUs = length || cpus.length;
   if (cluster.isMaster) {
     
     console.log('Master process is running');
@@ -23,7 +24,7 @@ const clusterize = (fns = [], args = []) => {
   
   } else {
 
-    fns.forEach(fn => fn.apply(null, args));
+    fns.forEach((fn, index) => fn.apply(null, args[index]));
 
     cluster.worker.on('message', (msg) => {
       console.log(`Message from master received by worker ${cluster.worker.id}: ${msg}`);
@@ -36,12 +37,12 @@ const clusterize = (fns = [], args = []) => {
 
 module.exports = clusterize;
 
-// const test = (args) => {
-//   console.log('Test 1', args)
-// }
+const test = (args = []) => {
+  console.log('\nTest 1', args)
+}
 
-// const test2 = () => {
-//   console.log('Test 2')
-// }
+const test2 = (args = []) => {
+  console.log('\nTest 2', args)
+}
 
-// clusterize([test, test2], ['Hello world'])
+clusterize([test, test2], [[process.pid], [process.pid]], 0)
